@@ -1,0 +1,24 @@
+showdoc:
+  # 需要忽略的表前缀
+  ignore-pre: JIMU,ACT_,SYS_,CFG_,E_,GZT_,JS_,JOB_,JG_,MENU_,MON_,MAJOR_,NUMBER_,PLJSON_,REGION,RES_,STAT_,TEMP,USER,ZZ_,TMP_MESSAGE,ZD_CONFIG,WARNING_RECORD,schema_
+  # 需要忽略的表后缀
+  ignore-end: _TOTAL,_FH,_copy1,_H,_HIS
+  # showdoc server url
+  server-url: https://www.showdoc.cc/server/api/item/updateByApi
+  # showdoc api-key
+  apikey: c9e79f8bebd920c7ac279267d34324a3635269964
+  # showdoc api-token
+  apitoken: 2cd1d273e445da0948c7b571894625431820312802
+  # showdoc cat-name
+  catname: 数据库
+
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@127.0.0.1:1521:orcl
+    username: root
+    password: root
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 100
+      schema: midschool

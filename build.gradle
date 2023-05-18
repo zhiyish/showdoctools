@@ -1,0 +1,49 @@
+buildscript {
+    ext {
+        springBootVersion = '3.0.6'
+        lombokVersion = '1.18.26'
+        oracleVersion = '21.9.0.0'
+        springDepVersion = '1.1.0'
+        hutoolVersion = '5.8.18'
+    }
+    // 插件仓库
+    repositories {
+        mavenLocal()
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+    }
+}
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version "${springDepVersion}"
+}
+
+group = 'com.zhiyi'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation("cn.hutool:hutool-core:${hutoolVersion}")
+    implementation("cn.hutool:hutool-http:${hutoolVersion}")
+
+    // lombok
+    compileOnly("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // database
+    implementation("com.oracle.database.jdbc:ojdbc8:${oracleVersion}")
+    implementation("com.oracle.database.nls:orai18n:${oracleVersion}")
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
