@@ -11,6 +11,10 @@ showdoc:
   apitoken: 2cd1d273e445da0948c7b571894625431820312802
   # showdoc cat-name
   catname: 数据库
+  # all tables put into one page or split to one page of one table
+  allinone: true
+  # database type : mysql (default) / oracle / sqlserver / postgresql   ....
+  dbtype: oracle
 
 spring:
   datasource:
