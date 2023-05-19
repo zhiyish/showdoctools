@@ -112,7 +112,6 @@ public class Database implements CommandLineRunner {
         }
 
         Map<String, Object> param = new HashMap<>();
-        param.put("from", "shell");
         param.put("api_key", apikey);
         param.put("api_token", apitoken);
         param.put("cat_name", catname);
@@ -130,20 +129,15 @@ public class Database implements CommandLineRunner {
      */
     private String getMultiPage() {
         String result = "共%d 张表，完成 %d ";
-
         int i = 0;
-
         String sqlTables = Tables.getSql4Table(dbtype, schema);
         List<Map<String, Object>> tableList = jdbcTemplate.queryForList(sqlTables);
         for (Map<String, Object> tableMap : tableList) {
             StringBuilder allTables = new StringBuilder();
             allTables.append(StrUtil.LF).append(StrUtil.LF).append("** 文档更新时间：" + DateUtil.now() + " **");
-
             String mdTableName = "## %s";
-
             String tableName = MapUtil.getStr(tableMap, "TABLE_NAME");
             String tableComment = MapUtil.getStr(tableMap, "COMMENTS", "本表无说明");
-
             if (!Tables.excludeWithStr(tableName, ignorePre, ignoreEnd)) {
                 String tableInfo = String.format(mdTableName, "`" + tableName + "`" + " (" + tableComment + ")");
                 log.debug("table data={}", tableInfo);
@@ -153,7 +147,6 @@ public class Database implements CommandLineRunner {
                 allTables.append(StrUtil.LF).append("|字段|类型|允许空|默认值|注释|").append(StrUtil.LF).append("|:----|:----|:----|----|----|");
                 for (Map<String, Object> column : columns) {
                     String mdColumns = "|%s|%s|%s|%s|%s|";
-
                     String COLUMN_NAME = MapUtil.getStr(column, "COLUMN_NAME");
                     String DATA_TYPE = MapUtil.getStr(column, "DATA_TYPE", "");
                     String NULLABLE = MapUtil.getStr(column, "NULLABLE", "");
@@ -175,19 +168,19 @@ public class Database implements CommandLineRunner {
                     log.debug("column data={}", columnInfo);
                     allTables.append(StrUtil.LF).append(columnInfo);
                 }
-            }
-            Map<String, Object> param = new HashMap<>();
-            param.put("from", "shell");
-            param.put("api_key", apikey);
-            param.put("api_token", apitoken);
-            param.put("cat_name", catname);
-            param.put("page_title", tableName);
-            param.put("page_content", allTables.toString());
-            try {
-                result = HttpUtil.post(serverUrl, param);
-                i = i + 1;
-            } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("api_key", apikey);
+                    param.put("api_token", apitoken);
+                    param.put("cat_name", catname);
+                    param.put("page_title", tableName);
+                    param.put("page_content", allTables.toString());
+                    param.put("s_number", (i + 1));
+                    result = HttpUtil.post(serverUrl, param);
+                    i = i + 1;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         return String.format(result, tableList.size(), i);
