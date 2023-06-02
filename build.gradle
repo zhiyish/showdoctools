@@ -1,13 +1,13 @@
 buildscript {
     ext {
-        springBootVersion = '3.0.6'
-        lombokVersion = '1.18.26'
+        springBootVersion = '3.1.0'
+        lombokVersion = '1.18.28'
         oracleVersion = '21.9.0.0'
         mysqlVersion = '8.0.33'
         mssqlVersion = '10.2.3.jre17'
         pgsqlVersion = '42.6.0'
         springDepVersion = '1.1.0'
-        hutoolVersion = '5.8.18'
+        hutoolVersion = '5.8.19'
     }
     // 插件仓库
     repositories {
@@ -24,6 +24,10 @@ plugins {
 
 group = 'com.zhiyi'
 version = '0.0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -55,4 +59,38 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register('copyJar', Copy) {
+    delete "$buildDir/libs/lib"
+    from configurations.runtimeClasspath
+    into "$buildDir/libs/lib"
+}
+
+tasks.register('copyConfigFile', Copy) {
+    delete "$buildDir/libs/config"
+    into "$buildDir/libs/config"
+    from('src/main/resources') {
+        include '**/*'
+    }
+}
+tasks.register('copyRunFile', Copy) {
+    from('bin')
+    into "$buildDir/libs"
+    include('startup.bat')
+    include('app.sh')
+    filter { line -> line.replaceAll('@version@', "${project.version}") }
+    filter { line -> line.replaceAll('@projectname@', "${project.name}") }
+}
+bootJar {
+    excludes = ["*.yml", "*.jar"]
+
+    dependsOn copyJar
+    dependsOn copyConfigFile
+    dependsOn copyRunFile
+
+    manifest {
+        attributes "Manifest-Version": 1.0,
+                'Class-Path': "config/ " + project.configurations.runtimeClasspath.files.collect { "lib/$it.name" }.join(' ')
+    }
 }

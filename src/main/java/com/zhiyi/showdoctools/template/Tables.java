@@ -30,36 +30,32 @@ public class Tables {
     }
 
     public static String getSql4Table(String dbtype, String schema) {
-        String result = "";
-        if ("oracle".equalsIgnoreCase(dbtype)) {
-            result = "SELECT T.TABLE_NAME as TABLE_NAME, C.COMMENTS as COMMENTS " +
+
+        return switch (dbtype) {
+            case "oracle" -> "SELECT T.TABLE_NAME as TABLE_NAME, C.COMMENTS as COMMENTS " +
                     " FROM USER_TABLES T, USER_TAB_COMMENTS C " +
                     " WHERE T.TABLE_NAME = C.TABLE_NAME " +
                     " ORDER BY T.TABLE_NAME";
-        } else if ("postgresql".equalsIgnoreCase(dbtype)) {
-            result = "SELECT T.table_name as TABLE_NAME, COALESCE(obj_description(relfilenode, 'pg_class'), '') AS COMMENTS  " +
-                    "  FROM information_schema.TABLES AS T, pg_class C  " +
-                    "  WHERE T.table_name = C.relname  " +
-                    "  AND TABLE_SCHEMA =  " + StrUtil.wrap(schema, "'") +
-                    "  ORDER BY T.table_name";
-        } else if ("sqlserver".equalsIgnoreCase(dbtype)) {
-            result = "SELECT TABLE_NAME  as TABLE_NAME " +
-                    " FROM INFORMATION_SCHEMA.TABLES " +
-                    " WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG = " + StrUtil.wrap(schema, "'") +
-                    " ORDER BY TABLE_NAME ";
-        } else {
-            result = " select d.name as TABLE_NAME ,f.value  as COMMENTS " +
+            case "postgresql" ->
+                    "SELECT T.table_name as TABLE_NAME, COALESCE(obj_description(relfilenode, 'pg_class'), '') AS COMMENTS  " +
+                            "  FROM information_schema.TABLES AS T, pg_class C  " +
+                            "  WHERE T.table_name = C.relname  " +
+                            "  AND TABLE_SCHEMA =  " + StrUtil.wrap(schema, "'") +
+                            "  ORDER BY T.table_name";
+            case "sqlserver" -> " select d.name as TABLE_NAME ,f.value  as COMMENTS " +
                     " FROM sysobjects d left join sys.extended_properties f on   d.id=f.major_id and f.minor_id=0 " +
                     " where d.xtype='U' and  d.name<>'dtproperties' ";
-        }
-
-        return result;
+            case "mysql" -> "SELECT TABLE_NAME as TABLE_NAME, TABLE_COMMENT  as COMMENTS " +
+                    " FROM information_schema.TABLES " +
+                    " WHERE TABLE_SCHEMA = " + StrUtil.wrap(schema, "'");
+            default -> "";
+        };
     }
 
     public static String getSql4Column(String dbtype, String schema) {
-        String result = "";
-        if ("oracle".equalsIgnoreCase(dbtype)) {
-            result = "SELECT  " +
+
+        return switch (dbtype) {
+            case "oracle" -> "SELECT  " +
                     "    T.TABLE_NAME,  " +
                     "    T.COLUMN_NAME,  " +
                     "    T.DATA_DEFAULT,  " +
@@ -85,8 +81,7 @@ public class Tables {
                     "ORDER BY  " +
                     "    T.TABLE_NAME,  " +
                     "    T.COLUMN_ID";
-        } else if ("postgresql".equalsIgnoreCase(dbtype)) {
-            result = "SELECT COL.table_name as TABLE_NAME," +
+            case "postgresql" -> "SELECT COL.table_name as TABLE_NAME," +
                     " COL.column_name as COLUMN_NAME," +
                     " COL.column_default as DATA_DEFAULT," +
                     " COL.is_nullable as NULLABLE," +
@@ -98,8 +93,7 @@ public class Tables {
                     " AND ATT.attrelid = CLS.oid " +
                     " AND TABLE_NAME=%s " +
                     " ORDER BY COL.table_name, COL.ordinal_position";
-        } else if ("sqlserver".equalsIgnoreCase(dbtype)) {
-            result = "SELECT C.TABLE_NAME," +
+            case "sqlserver" -> "SELECT C.TABLE_NAME," +
                     " C.COLUMN_NAME," +
                     " C.COLUMN_DEFAULT AS DATA_DEFAULT," +
                     " C.IS_NULLABLE AS NULLABLE,  " +
@@ -165,8 +159,7 @@ on
 order by
     a.id,a.colorder
              */
-        } else {
-            result = "SELECT TABLE_NAME, " +
+            case "mysql" -> "SELECT TABLE_NAME, " +
                     " COLUMN_NAME, " +
                     " COLUMN_DEFAULT AS DATA_DEFAULT, " +
                     " IS_NULLABLE AS NULLABLE, " +
@@ -175,8 +168,7 @@ order by
                     " FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = " + StrUtil.wrap(schema, "'") +
                     " AND TABLE_NAME=%s " +
                     " ORDER BY ORDINAL_POSITION ";
-        }
-
-        return result;
+            default -> "";
+        };
     }
 }
