@@ -126,7 +126,7 @@ public class Tables {
                     " COLUMN_DEFAULT AS DATA_DEFAULT, " +
                     " IS_NULLABLE AS NULLABLE, " +
                     " COLUMN_TYPE AS DATA_TYPE, " +
-                    " COLUMN_COMMENT AS  AS COMMENTS " +
+                    " COLUMN_COMMENT AS COMMENTS " +
                     " FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = " + StrUtil.wrap(schema, "'") +
                     " AND TABLE_NAME=%s " +
                     " ORDER BY ORDINAL_POSITION ";
