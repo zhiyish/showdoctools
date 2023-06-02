@@ -43,14 +43,14 @@ public class Tables {
                     "  AND TABLE_SCHEMA =  " + StrUtil.wrap(schema, "'") +
                     "  ORDER BY T.table_name";
         } else if ("sqlserver".equalsIgnoreCase(dbtype)) {
-            result = "SELECT TABLE_NAME " +
+            result = "SELECT TABLE_NAME  as TABLE_NAME " +
                     " FROM INFORMATION_SCHEMA.TABLES " +
                     " WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG = " + StrUtil.wrap(schema, "'") +
                     " ORDER BY TABLE_NAME ";
         } else {
-            result = "SELECT TABLE_NAME, TABLE_COMMENT " +
-                    " FROM information_schema.TABLES " +
-                    " WHERE TABLE_SCHEMA = " + StrUtil.wrap(schema, "'");
+            result = " select d.name as TABLE_NAME ,f.value  as COMMENTS " +
+                    " FROM sysobjects d left join sys.extended_properties f on   d.id=f.major_id and f.minor_id=0 " +
+                    " where d.xtype='U' and  d.name<>'dtproperties' ";
         }
 
         return result;
@@ -120,6 +120,51 @@ public class Tables {
                     "   WHERE TABLE_CATALOG = " + StrUtil.wrap(schema, "'") +
                     " AND TABLE_NAME=%s " +
                     "   ORDER BY TABLE_NAME, ORDINAL_POSITION";
+
+            /*
+          备用一下
+SELECT
+    表名       = case when a.colorder=1 then d.name else '' end,
+    表说明     = case when a.colorder=1 then isnull(f.value,'') else '' end,
+    字段序号   = a.colorder,
+    字段名     = a.name,
+    标识       = case when COLUMNPROPERTY( a.id,a.name,'IsIdentity')=1 then '√'else '' end,
+    主键       = case when exists(SELECT 1 FROM sysobjects where xtype='PK' and parent_obj=a.id and name in (
+                     SELECT name FROM sysindexes WHERE indid in( SELECT indid FROM sysindexkeys WHERE id = a.id AND colid=a.colid))) then '√' else '' end,
+    类型       = b.name,
+    占用字节数 = a.length,
+    长度       = COLUMNPROPERTY(a.id,a.name,'PRECISION'),
+    小数位数   = isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0),
+    允许空     = case when a.isnullable=1 then '√'else '' end,
+    默认值     = isnull(e.text,''),
+    字段说明   = isnull(g.[value],'')
+FROM
+    syscolumns a
+left join
+    systypes b
+on
+    a.xusertype=b.xusertype
+inner join
+    sysobjects d
+on
+    a.id=d.id  and d.xtype='U' and  d.name<>'dtproperties'
+left join
+    syscomments e
+on
+    a.cdefault=e.id
+left join
+sys.extended_properties   g
+on
+    a.id=G.major_id and a.colid=g.minor_id
+left join
+sys.extended_properties f
+on
+    d.id=f.major_id and f.minor_id=0
+-- where     d.name='Sys_User'
+     --如果只查询指定表,加上此where条件，tablename是要查询的表名；去除where条件查询所有的表信息
+order by
+    a.id,a.colorder
+             */
         } else {
             result = "SELECT TABLE_NAME, " +
                     " COLUMN_NAME, " +
